@@ -56,6 +56,7 @@ class NNPDFDriver {
   bool fSingleMem;    //! bool which determines the constructor
   bool fLHAPDF6;      //! bool which determines the grid version
   double *fXpdf;      //! array with doubles
+  double fXMinGrid;   //! min x grid value
 
  public:
   /// The constructor

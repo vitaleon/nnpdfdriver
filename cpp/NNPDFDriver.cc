@@ -33,7 +33,6 @@
 #include <iterator>
 #include <cmath>
 
-#define XMINGRID 1e-9
 #define NNDriverVersion "1.0.6"
 
 using namespace std;
@@ -61,7 +60,8 @@ NNPDFDriver::NNPDFDriver(string const& gridfilename, int const& rep):
   fLogXGrid(NULL),
   fHasPhoton(false),
   fSingleMem(false),
-  fLHAPDF6(false)
+  fLHAPDF6(false),
+  fXMinGrid(1e-9)
 {
   // Logo
   cout << " ****************************************" << endl;
@@ -181,11 +181,7 @@ void NNPDFDriver::readPDFSet(string const& grid, int const& rep)
 	  if (tmp.find("XMin:") != string::npos)
 	    {
 	      split(splitstring,tmp);
-	      if ( fabs(atof(splitstring[1].c_str()) - XMINGRID) > 1e-10)
-		{
-		  cout << "Problem with XMINGRID" << endl;
-		  exit(-1);
-		}
+	      fXMinGrid = atof(splitstring[1].c_str());
 	    }
 	  
 	  if (f.eof()) break;
@@ -252,10 +248,12 @@ void NNPDFDriver::readPDFSet(string const& grid, int const& rep)
 	      split(splitstring,tmp);
 	      for (int i = 0; i < splitstring.size(); i++)
 		{	      
-		  if (atoi(splitstring[i].c_str()) == 21)
-		    fls.push_back(6);
-		  else
-		    fls.push_back(atoi(splitstring[i].c_str())+6);
+		  switch (atoi(splitstring[i].c_str()))
+		    {
+		      case 21: fls.push_back(6); break;
+		      case 22: fls.push_back(13); break;
+		      default: fls.push_back(atoi(splitstring[i].c_str())+6); break;
+		    }
 		}
 
 	      // building PDFgrid
@@ -538,10 +536,10 @@ double NNPDFDriver::xfx(double const&X, double const& Q, int const& ID)
     }
 
   // check bounds
-  if (x < XMINGRID || x < fXGrid[0] || x > fXGrid[fNX-1]) {
+  if (x < fXMinGrid || x < fXGrid[0] || x > fXGrid[fNX-1]) {
     cout << "Parton interpolation: x out of range -- freezed" << endl;  
     if (x < fXGrid[0])  x = fXGrid[0];
-    if (x < XMINGRID)   x = XMINGRID;
+    if (x < fXMinGrid)   x = fXMinGrid;
      if (x > fXGrid[fNX-1]) x = fXGrid[fNX-1];
   }
   if (Q2 < fQ2Grid[sub][0] || Q2 > fQ2Grid[sub][fNQ2[sub]-1]) {
